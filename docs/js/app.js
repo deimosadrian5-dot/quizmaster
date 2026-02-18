@@ -12,10 +12,7 @@ const DB = {
     _set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
 
     nextId(key) {
-        const k = 'qm_next_' + key;
-        const id = parseInt(localStorage.getItem(k) || '1');
-        localStorage.setItem(k, id + 1);
-        return id;
+        return Date.now() + Math.floor(Math.random() * 1000);
     },
 
     // ── Quizzes ──
@@ -26,20 +23,21 @@ const DB = {
         if (!quiz.id) {
             quiz.id = this.nextId('quiz');
             quiz.created_at = new Date().toISOString();
-            // Assign IDs to questions
-            quiz.questions = (quiz.questions || []).map((q, i) => ({...q, id: quiz.id * 1000 + i + 1, points: q.points || 10}));
+            quiz.questions = (quiz.questions || []).map((q, i) => ({...q, id: i + 1, points: q.points || 10}));
             quizzes.push(quiz);
         } else {
             const idx = quizzes.findIndex(q => q.id === quiz.id);
             if (idx >= 0) quizzes[idx] = quiz;
         }
         this._set('qm_quizzes', quizzes);
+        if (typeof fbSaveQuiz === 'function') fbSaveQuiz(quiz);
         return quiz;
     },
     deleteQuiz(id) {
         id = parseInt(id);
         this._set('qm_quizzes', this.getQuizzes().filter(q => q.id !== id));
         this._set('qm_attempts', this.getAttempts().filter(a => a.quiz_id !== id));
+        if (typeof fbDeleteQuiz === 'function') fbDeleteQuiz(id);
     },
 
     // ── Attempts ──
@@ -51,6 +49,7 @@ const DB = {
         attempt.created_at = new Date().toISOString();
         attempts.push(attempt);
         this._set('qm_attempts', attempts);
+        if (typeof fbSaveAttempt === 'function') fbSaveAttempt(attempt);
         return attempt;
     },
 
@@ -58,15 +57,20 @@ const DB = {
     isSeeded() { return localStorage.getItem('qm_seeded') === '1'; },
     seed() {
         if (this.isSeeded()) return;
-        SEED_QUIZZES.forEach(sq => {
-            this.saveQuiz({
+        SEED_QUIZZES.forEach((sq, i) => {
+            const quiz = {
+                id: i + 1,
                 title: sq.title,
                 description: sq.description,
                 category: sq.category,
                 difficulty: sq.difficulty,
                 time_per_question: sq.time_per_question,
-                questions: sq.questions,
-            });
+                created_at: new Date().toISOString(),
+                questions: (sq.questions || []).map((q, j) => ({...q, id: j + 1, points: q.points || 10})),
+            };
+            const quizzes = this.getQuizzes();
+            quizzes.push(quiz);
+            this._set('qm_quizzes', quizzes);
         });
         localStorage.setItem('qm_seeded', '1');
     },
@@ -350,8 +354,20 @@ function launchConfetti() {
    INIT
    ════════════════════════════════════ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     DB.seed();
+
+    // Sync with Firebase cloud (timeout 3s so page still loads if offline)
+    if (typeof initFirebase === 'function') {
+        try {
+            initFirebase();
+            await Promise.race([
+                (async () => { await fbPullAll(); await fbSeedCloud(); })(),
+                new Promise(r => setTimeout(r, 3000))
+            ]);
+        } catch (e) { /* continue with local data */ }
+    }
+
     injectLayout();
     lucide.createIcons();
     renderThemeOptions();
