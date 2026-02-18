@@ -1,34 +1,15 @@
-FROM composer:2 AS composer
+FROM composer:2
 
-FROM php:8.2-cli-alpine
-
-# Install system dependencies and PHP extensions (Alpine uses apk)
-RUN apk add --no-cache \
-    git curl zip unzip sqlite sqlite-dev libxml2-dev oniguruma-dev \
-    && docker-php-ext-install pdo_sqlite mbstring xml
-
-# Get composer from composer image
-COPY --from=composer /usr/bin/composer /usr/bin/composer
+RUN apk add --no-cache sqlite sqlite-dev oniguruma-dev \
+    && docker-php-ext-install pdo_sqlite mbstring
 
 WORKDIR /app
 COPY . .
 
-# Create .env for build-time artisan commands
-RUN printf "APP_NAME=QuizMaster\n\
-APP_ENV=production\n\
-APP_KEY=base64:JI1lz1T02QxYhbcGC7yNDy6WtvTltIUe5VSMcUXiB6w=\n\
-APP_DEBUG=false\n\
-APP_URL=http://localhost\n\
-DB_CONNECTION=sqlite\n\
-LOG_CHANNEL=stack\n\
-CACHE_DRIVER=file\n\
-SESSION_DRIVER=file\n\
-QUEUE_CONNECTION=sync\n" > .env
+RUN printf "APP_NAME=QuizMaster\nAPP_ENV=production\nAPP_KEY=base64:JI1lz1T02QxYhbcGC7yNDy6WtvTltIUe5VSMcUXiB6w=\nAPP_DEBUG=false\nDB_CONNECTION=sqlite\nCACHE_DRIVER=file\nSESSION_DRIVER=file\n" > .env
 
-# Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Prepare storage & database (bake seeded data into image)
 RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data \
     && chmod -R 775 storage bootstrap/cache \
     && touch database/database.sqlite \
@@ -38,7 +19,6 @@ RUN mkdir -p storage/framework/sessions storage/framework/views storage/framewor
     && php artisan route:cache \
     && php artisan view:cache
 
-# Render sets PORT env var dynamically
 ENV PORT=10000
 EXPOSE 10000
 
