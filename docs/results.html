@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results — QuizMaster</title>
+    <script>
+        var THEMES={indigo:{label:'Indigo',primary:'#4f46e5',secondary:'#7c3aed',rgb:'99,102,241',palette:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'}},ocean:{label:'Ocean',primary:'#0284c7',secondary:'#06b6d4',rgb:'2,132,199',palette:{50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e'}},emerald:{label:'Emerald',primary:'#059669',secondary:'#10b981',rgb:'5,150,105',palette:{50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b'}},sunset:{label:'Sunset',primary:'#ea580c',secondary:'#f59e0b',rgb:'234,88,12',palette:{50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12'}},rose:{label:'Rose',primary:'#e11d48',secondary:'#ec4899',rgb:'225,29,72',palette:{50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',400:'#fb7185',500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337'}},midnight:{label:'Midnight',primary:'#1e293b',secondary:'#475569',rgb:'30,41,59',palette:{50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a'}}};
+        var savedTheme=localStorage.getItem('qm-theme')||'indigo';
+        var T=THEMES[savedTheme]||THEMES.indigo;
+        var ds=document.documentElement.style;
+        Object.entries(T.palette).forEach(function(e){ds.setProperty('--t-'+e[0],e[1])});
+        ds.setProperty('--t-primary',T.primary);ds.setProperty('--t-secondary',T.secondary);ds.setProperty('--t-rgb',T.rgb);
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']},colors:{brand:T.palette,indigo:T.palette}}}}</script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+<nav id="main-nav"></nav>
+<div id="page-content"></div>
+<footer id="main-footer"></footer>
+
+<script src="js/question-bank.js"></script>
+<script src="js/app.js"></script>
+<script>
+function pageInit() {
+    const raw = sessionStorage.getItem('qm_last_result');
+    if (!raw) {
+        document.getElementById('page-content').innerHTML = '<div class="text-center py-20"><h2 class="text-2xl font-bold text-gray-600">No results found</h2><a href="quizzes.html" class="text-indigo-600 mt-4 inline-block">Browse Quizzes</a></div>';
+        return;
+    }
+    const r = JSON.parse(raw);
+    const percentage = Math.round((r.score / r.total_points) * 100);
+    const correctCount = r.questions.filter(q => q.is_correct).length;
+    const grade = getGrade(percentage);
+
+    document.title = 'Results: ' + r.quiz_title + ' — QuizMaster';
+
+    // Build question review
+    let reviewHtml = '';
+    r.questions.forEach((q, idx) => {
+        const borderColor = q.is_correct ? 'border-emerald-200' : 'border-red-200';
+        const bgColor = q.is_correct ? 'bg-emerald-50' : 'bg-red-50';
+        const textColor = q.is_correct ? 'text-emerald-700' : 'text-red-700';
+        const statusIcon = q.is_correct
+            ? '<i data-lucide="check-circle" class="w-4 h-4"></i> Correct'
+            : '<i data-lucide="x-circle" class="w-4 h-4"></i> Incorrect';
+
+        const keys = ['a', 'b', 'c', 'd'];
+        const labels = ['A', 'B', 'C', 'D'];
+        const vals = [q.option_a, q.option_b, q.option_c, q.option_d];
+
+        let optionsHtml = '';
+        keys.forEach((key, i) => {
+            let cls = 'text-gray-600 border border-transparent';
+            let badge = 'bg-gray-200';
+            let trail = '';
+            if (key === q.correct_answer) {
+                cls = 'bg-emerald-50 text-emerald-800 font-medium border border-emerald-200';
+                badge = 'bg-emerald-500 text-white';
+                trail = '<span class="ml-auto"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i></span>';
+            } else if (key === q.user_answer && !q.is_correct) {
+                cls = 'bg-red-50 text-red-800 border border-red-200';
+                trail = '<span class="ml-auto"><i data-lucide="x" class="w-4 h-4 text-red-600"></i></span>';
+            }
+            optionsHtml += '<div class="flex items-center p-2 rounded-lg text-sm ' + cls + '">' +
+                '<span class="w-7 h-7 rounded-md ' + badge + ' flex items-center justify-center text-xs font-bold mr-3">' + labels[i] + '</span>' +
+                escapeHtml(vals[i]) + trail + '</div>';
+        });
+
+        let explanationHtml = '';
+        if (q.explanation) {
+            explanationHtml = '<div class="mt-2 p-3 bg-blue-50 rounded-lg text-sm text-blue-800 flex items-start gap-2 border border-blue-100"><i data-lucide="lightbulb" class="w-4 h-4 mt-0.5 flex-shrink-0"></i><span>' + escapeHtml(q.explanation) + '</span></div>';
+        }
+
+        reviewHtml += `
+        <div class="border rounded-xl overflow-hidden ${borderColor}">
+            <div class="p-4 ${bgColor}">
+                <span class="inline-flex items-center gap-1 text-sm font-medium ${textColor}">${statusIcon} · ${q.points} pts</span>
+                <h4 class="font-bold text-gray-800 mt-1 text-sm">Q${idx + 1}. ${escapeHtml(q.question_text)}</h4>
+            </div>
+            <div class="p-4 space-y-2">${optionsHtml}${explanationHtml}</div>
+        </div>`;
+    });
+
+    document.getElementById('page-content').innerHTML = `
+    <div class="max-w-3xl mx-auto px-4 py-12">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in mb-8">
+            <div class="gradient-bg p-8 text-white text-center">
+                <div class="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-3 bounce-in">
+                    <i data-lucide="${grade.icon}" class="w-8 h-8"></i>
+                </div>
+                <h1 class="text-3xl font-extrabold mb-2">${grade.label}</h1>
+                <p class="text-indigo-200">${escapeHtml(r.player_name)}'s Results</p>
+            </div>
+            <div class="p-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="text-center p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                        <div class="text-2xl font-extrabold text-indigo-700">${r.score}</div>
+                        <div class="text-xs text-gray-500 mt-1">Points Earned</div>
+                    </div>
+                    <div class="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <div class="text-2xl font-extrabold text-blue-700">${percentage}%</div>
+                        <div class="text-xs text-gray-500 mt-1">Accuracy</div>
+                    </div>
+                    <div class="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <div class="text-2xl font-extrabold text-emerald-700">${correctCount}/${r.questions.length}</div>
+                        <div class="text-xs text-gray-500 mt-1">Correct</div>
+                    </div>
+                    <div class="text-center p-4 bg-amber-50 rounded-xl border border-amber-100">
+                        <div class="text-2xl font-extrabold text-amber-700">${r.time_taken}s</div>
+                        <div class="text-xs text-gray-500 mt-1">Time Taken</div>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm text-gray-500 mb-1">
+                        <span>Score Progress</span>
+                        <span>${r.score}/${r.total_points}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="gradient-bg h-3 rounded-full transition-all duration-1000" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a href="play.html?id=${r.quiz_id}" class="inline-flex items-center justify-center gap-2 gradient-bg text-white px-6 py-3 rounded-xl font-bold text-center hover:opacity-90 transition text-sm">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Try Again
+                    </a>
+                    <a href="quizzes.html" class="inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-bold text-center hover:bg-gray-200 transition text-sm border border-gray-200">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i> All Quizzes
+                    </a>
+                    <a href="leaderboard.html?quiz=${r.quiz_id}" class="inline-flex items-center justify-center gap-2 bg-amber-50 text-amber-800 px-6 py-3 rounded-xl font-bold text-center hover:bg-amber-100 transition text-sm border border-amber-200">
+                        <i data-lucide="trophy" class="w-4 h-4"></i> Leaderboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 fade-in">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <i data-lucide="clipboard-list" class="w-5 h-5 text-indigo-500"></i> Question Review
+            </h2>
+            <div class="space-y-5">${reviewHtml}</div>
+        </div>
+    </div>`;
+
+    lucide.createIcons();
+
+    // Confetti for good scores
+    if (percentage >= 70) {
+        launchConfetti();
+    }
+}
+</script>
+</body>
+</html>

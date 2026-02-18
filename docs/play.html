@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing — QuizMaster</title>
+    <script>
+        var THEMES={indigo:{label:'Indigo',primary:'#4f46e5',secondary:'#7c3aed',rgb:'99,102,241',palette:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'}},ocean:{label:'Ocean',primary:'#0284c7',secondary:'#06b6d4',rgb:'2,132,199',palette:{50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e'}},emerald:{label:'Emerald',primary:'#059669',secondary:'#10b981',rgb:'5,150,105',palette:{50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b'}},sunset:{label:'Sunset',primary:'#ea580c',secondary:'#f59e0b',rgb:'234,88,12',palette:{50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12'}},rose:{label:'Rose',primary:'#e11d48',secondary:'#ec4899',rgb:'225,29,72',palette:{50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',400:'#fb7185',500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337'}},midnight:{label:'Midnight',primary:'#1e293b',secondary:'#475569',rgb:'30,41,59',palette:{50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a'}}};
+        var savedTheme=localStorage.getItem('qm-theme')||'indigo';
+        var T=THEMES[savedTheme]||THEMES.indigo;
+        var ds=document.documentElement.style;
+        Object.entries(T.palette).forEach(function(e){ds.setProperty('--t-'+e[0],e[1])});
+        ds.setProperty('--t-primary',T.primary);ds.setProperty('--t-secondary',T.secondary);ds.setProperty('--t-rgb',T.rgb);
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']},colors:{brand:T.palette,indigo:T.palette}}}}</script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+<nav id="main-nav"></nav>
+
+<div class="max-w-3xl mx-auto px-4 py-12" id="quiz-app">
+
+    <!-- Name Entry -->
+    <div id="name-screen" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center fade-in">
+        <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4" id="name-icon-wrap">
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2" id="name-title"></h2>
+        <p class="text-gray-500 mb-8">Enter your name to begin!</p>
+        <div class="max-w-sm mx-auto">
+            <input type="text" id="player-name" placeholder="Your Name" maxlength="50"
+                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-lg font-medium focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition">
+            <button onclick="startQuiz()"
+                    class="w-full mt-4 gradient-bg text-white py-3.5 rounded-xl font-bold text-lg hover:opacity-90 transition inline-flex items-center justify-center gap-2">
+                <i data-lucide="play" class="w-5 h-5"></i> Let's Go!
+            </button>
+        </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="hidden">
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-gray-500" id="question-counter"></span>
+                <span class="text-sm font-medium text-gray-500 flex items-center gap-1" id="score-display"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div class="gradient-bg h-2.5 rounded-full progress-bar" id="progress-bar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="flex justify-center mb-6">
+            <div class="relative" id="timer-wrapper">
+                <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" stroke="#e5e7eb" stroke-width="8" fill="none"/>
+                    <circle cx="50" cy="50" r="45" style="stroke: var(--t-500)" stroke-width="8" fill="none"
+                            stroke-dasharray="283" stroke-dashoffset="0" stroke-linecap="round"
+                            id="timer-circle" class="timer-ring"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-xl font-bold" id="timer-text"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 fade-in" id="question-card">
+            <h3 class="text-lg font-bold text-gray-800 mb-6 text-center leading-relaxed" id="question-text"></h3>
+            <div class="space-y-3" id="options-container"></div>
+        </div>
+
+        <div class="text-center mt-6">
+            <button onclick="nextQuestion()" id="next-btn"
+                    class="hidden gradient-bg text-white px-8 py-3 rounded-xl font-bold hover:opacity-90 transition inline-flex items-center gap-2">
+                Next <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<footer id="main-footer"></footer>
+
+<script src="js/question-bank.js"></script>
+<script src="js/app.js"></script>
+<script>
+let quiz, questions, timePerQuestion, totalQuestions;
+let currentQuestion = 0, score = 0, answers = {};
+let timerInterval = null, timeLeft = 0, totalTimeTaken = 0;
+let questionStartTime = 0, answered = false;
+let quizStarted = false, quizSubmitting = false, hurryShown = false;
+
+function pageInit() {
+    const quizId = getUrlParam('id');
+    quiz = DB.getQuiz(quizId);
+    if (!quiz) {
+        document.getElementById('quiz-app').innerHTML = '<div class="text-center py-20"><h2 class="text-2xl font-bold text-gray-600">Quiz not found</h2><a href="quizzes.html" class="text-indigo-600 mt-4 inline-block">Back to Quizzes</a></div>';
+        return;
+    }
+
+    questions = quiz.questions || [];
+    timePerQuestion = quiz.time_per_question;
+    totalQuestions = questions.length;
+
+    document.title = 'Playing: ' + quiz.title + ' — QuizMaster';
+    const icon = getCategoryIcon(quiz.category);
+    document.getElementById('name-icon-wrap').innerHTML = '<i data-lucide="' + icon + '" class="w-8 h-8 text-indigo-600"></i>';
+    document.getElementById('name-title').textContent = quiz.title;
+    document.getElementById('timer-text').textContent = timePerQuestion;
+    lucide.createIcons();
+
+    document.getElementById('player-name').addEventListener('keypress', e => { if (e.key === 'Enter') startQuiz(); });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (quizStarted && !quizSubmitting) {
+            e.preventDefault();
+            e.returnValue = 'You have a quiz in progress. Your answers will be lost!';
+        }
+    });
+
+    // Intercept nav clicks
+    setTimeout(() => {
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (quizStarted && !quizSubmitting) {
+                    e.preventDefault();
+                    const href = this.href;
+                    showConfirm('log-out', 'red', 'Leave Quiz?',
+                        'You have a quiz in progress!<br>All your progress will be <strong>lost</strong> if you leave now.',
+                        'Leave Anyway', 'modal-btn-danger',
+                        function() { quizSubmitting = true; window.location.href = href; }
+                    );
+                }
+            });
+        });
+    }, 100);
+}
+
+function startQuiz() {
+    const name = document.getElementById('player-name').value.trim();
+    if (!name) {
+        showAlert('hand', 'amber', 'Hold On!', 'Please enter your name before starting the quiz.<br>We need it for the leaderboard!', 'Got it', 'modal-btn-warning');
+        document.getElementById('player-name').focus();
+        return;
+    }
+    document.getElementById('name-screen').classList.add('hidden');
+    document.getElementById('quiz-screen').classList.remove('hidden');
+    quizStarted = true;
+    showToast('Good luck, ' + name + '!', 'success', 2000);
+    showQuestion();
+}
+
+function showQuestion() {
+    const q = questions[currentQuestion];
+    answered = false;
+    timeLeft = timePerQuestion;
+    questionStartTime = Date.now();
+    hurryShown = false;
+
+    document.getElementById('question-counter').textContent = 'Question ' + (currentQuestion + 1) + ' of ' + totalQuestions;
+    document.getElementById('score-display').innerHTML = '<svg class="w-3.5 h-3.5 text-amber-500 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Score: ' + score;
+    document.getElementById('progress-bar').style.width = ((currentQuestion) / totalQuestions * 100) + '%';
+    document.getElementById('question-text').textContent = q.question_text;
+    document.getElementById('next-btn').classList.add('hidden');
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+    const labels = ['A', 'B', 'C', 'D'];
+    const keys = ['a', 'b', 'c', 'd'];
+    const vals = [q.option_a, q.option_b, q.option_c, q.option_d];
+
+    keys.forEach((key, i) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-option flex items-center p-4 border-2 border-gray-200 rounded-xl';
+        div.dataset.answer = key;
+        div.onclick = () => selectAnswer(key, div);
+        div.innerHTML = '<span class="flex-shrink-0 w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center mr-4 text-sm">' + labels[i] + '</span><span class="text-gray-700 font-medium text-sm">' + escapeHtml(vals[i]) + '</span>';
+        container.appendChild(div);
+    });
+
+    startTimer();
+    document.getElementById('question-card').classList.add('fade-in');
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft <= 0) { clearInterval(timerInterval); if (!answered) timeUp(); }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const tt = document.getElementById('timer-text');
+    const tc = document.getElementById('timer-circle');
+    const tw = document.getElementById('timer-wrapper');
+    tt.textContent = timeLeft;
+    tc.style.strokeDashoffset = 283 - (283 * timeLeft / timePerQuestion);
+
+    if (timeLeft <= 5) {
+        tc.style.stroke = '#ef4444'; tt.style.color = '#ef4444';
+        tw.classList.add('timer-shake');
+    } else if (timeLeft <= 10) {
+        tc.style.stroke = '#f59e0b'; tt.style.color = '#f59e0b';
+        tw.classList.remove('timer-shake');
+    } else {
+        tc.style.stroke = getComputedStyle(document.documentElement).getPropertyValue('--t-500'); tt.style.color = '#1f2937';
+        tw.classList.remove('timer-shake');
+    }
+
+    if (!hurryShown && timePerQuestion > 6 && timeLeft === Math.floor(timePerQuestion / 2)) {
+        hurryShown = true; showToast('Halfway! Keep going!', 'warning');
+    }
+    if (timeLeft === 5 && !answered) { showToast('Hurry up! 5 seconds left!', 'danger'); }
+}
+
+function selectAnswer(key, element) {
+    if (answered) return;
+    answered = true;
+    clearInterval(timerInterval);
+
+    const q = questions[currentQuestion];
+    totalTimeTaken += Math.round((Date.now() - questionStartTime) / 1000);
+    answers[q.id] = key;
+
+    document.querySelectorAll('.quiz-option').forEach(opt => {
+        opt.style.cursor = 'default';
+        if (opt.dataset.answer === q.correct_answer) {
+            opt.classList.add('correct');
+            opt.innerHTML += '<span class="ml-auto text-green-600 font-bold"><svg class="w-5 h-5 inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>';
+        }
+        if (opt.dataset.answer === key && key !== q.correct_answer) {
+            opt.classList.add('incorrect');
+            opt.innerHTML += '<span class="ml-auto text-red-600 font-bold"><svg class="w-5 h-5 inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>';
+        }
+    });
+
+    if (key === q.correct_answer) {
+        score += (q.points || 10);
+        document.getElementById('score-display').innerHTML = '<svg class="w-3.5 h-3.5 text-amber-500 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Score: ' + score;
+    }
+
+    if (q.explanation) {
+        const card = document.getElementById('question-card');
+        const explDiv = document.createElement('div');
+        explDiv.className = 'mt-4 p-4 bg-blue-50 rounded-xl text-sm text-blue-800 fade-in flex items-start gap-2 border border-blue-100';
+        explDiv.innerHTML = '<svg class="w-4 h-4 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg><span><strong>Explanation:</strong> ' + escapeHtml(q.explanation) + '</span>';
+        card.appendChild(explDiv);
+    }
+
+    setTimeout(() => {
+        const btn = document.getElementById('next-btn');
+        btn.classList.remove('hidden');
+        if (currentQuestion === totalQuestions - 1) {
+            btn.innerHTML = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg> See Results';
+        }
+    }, 500);
+}
+
+function timeUp() {
+    answered = true;
+    const q = questions[currentQuestion];
+    totalTimeTaken += timePerQuestion;
+    answers[q.id] = null;
+
+    document.querySelectorAll('.quiz-option').forEach(opt => {
+        opt.style.cursor = 'default';
+        if (opt.dataset.answer === q.correct_answer) {
+            opt.classList.add('correct');
+            opt.innerHTML += '<span class="ml-auto text-green-600 font-bold"><svg class="w-5 h-5 inline" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>';
+        }
+    });
+
+    const card = document.getElementById('question-card');
+    const div = document.createElement('div');
+    div.className = 'mt-4 p-4 bg-red-50 rounded-xl text-sm text-red-700 fade-in text-center font-bold flex items-center justify-center gap-2 border border-red-100';
+    div.innerHTML = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Time\'s Up!';
+    card.appendChild(div);
+
+    setTimeout(() => {
+        const btn = document.getElementById('next-btn');
+        btn.classList.remove('hidden');
+        if (currentQuestion === totalQuestions - 1) {
+            btn.innerHTML = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg> See Results';
+        }
+    }, 500);
+}
+
+function nextQuestion() {
+    currentQuestion++;
+    if (currentQuestion >= totalQuestions) {
+        const answeredCount = Object.values(answers).filter(a => a !== null).length;
+        const unansweredCount = totalQuestions - answeredCount;
+        let msg = 'You answered <strong>' + answeredCount + '</strong> out of <strong>' + totalQuestions + '</strong> questions.';
+        if (unansweredCount > 0) msg += '<br><span style="color:#ef4444;">' + unansweredCount + ' unanswered or timed out.</span>';
+        msg += '<br><br>Ready to see your results?';
+
+        showConfirm('flag', 'green', 'Submit Quiz?', msg, 'See My Results', 'modal-btn-success', () => submitQuiz());
+        return;
+    }
+    showQuestion();
+}
+
+function submitQuiz() {
+    quizSubmitting = true;
+
+    const playerName = document.getElementById('player-name').value.trim();
+    const totalPoints = questions.reduce((s, q) => s + (q.points || 10), 0);
+
+    // Build detailed results for the results page
+    const questionResults = questions.map(q => {
+        const userAnswer = answers[q.id] || null;
+        const isCorrect = userAnswer === q.correct_answer;
+        return {
+            question_text: q.question_text,
+            option_a: q.option_a,
+            option_b: q.option_b,
+            option_c: q.option_c,
+            option_d: q.option_d,
+            correct_answer: q.correct_answer,
+            user_answer: userAnswer,
+            is_correct: isCorrect,
+            points: q.points || 10,
+            explanation: q.explanation || null,
+        };
+    });
+
+    // Save attempt to localStorage
+    const attempt = DB.saveAttempt({
+        quiz_id: quiz.id,
+        player_name: playerName,
+        score: score,
+        total_points: totalPoints,
+        time_taken: totalTimeTaken,
+    });
+
+    // Store results in sessionStorage for results page
+    sessionStorage.setItem('qm_last_result', JSON.stringify({
+        attempt_id: attempt.id,
+        quiz_id: quiz.id,
+        quiz_title: quiz.title,
+        quiz_category: quiz.category,
+        player_name: playerName,
+        score: score,
+        total_points: totalPoints,
+        time_taken: totalTimeTaken,
+        questions: questionResults,
+    }));
+
+    window.location.href = 'results.html';
+}
+</script>
+</body>
+</html>

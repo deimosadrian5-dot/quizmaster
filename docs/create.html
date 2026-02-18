@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Quiz — QuizMaster</title>
+    <script>
+        var THEMES={indigo:{label:'Indigo',primary:'#4f46e5',secondary:'#7c3aed',rgb:'99,102,241',palette:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'}},ocean:{label:'Ocean',primary:'#0284c7',secondary:'#06b6d4',rgb:'2,132,199',palette:{50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e'}},emerald:{label:'Emerald',primary:'#059669',secondary:'#10b981',rgb:'5,150,105',palette:{50:'#ecfdf5',100:'#d1fae5',200:'#a7f3d0',300:'#6ee7b7',400:'#34d399',500:'#10b981',600:'#059669',700:'#047857',800:'#065f46',900:'#064e3b'}},sunset:{label:'Sunset',primary:'#ea580c',secondary:'#f59e0b',rgb:'234,88,12',palette:{50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12'}},rose:{label:'Rose',primary:'#e11d48',secondary:'#ec4899',rgb:'225,29,72',palette:{50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',400:'#fb7185',500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337'}},midnight:{label:'Midnight',primary:'#1e293b',secondary:'#475569',rgb:'30,41,59',palette:{50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',300:'#cbd5e1',400:'#94a3b8',500:'#64748b',600:'#475569',700:'#334155',800:'#1e293b',900:'#0f172a'}}};
+        var savedTheme=localStorage.getItem('qm-theme')||'indigo';
+        var T=THEMES[savedTheme]||THEMES.indigo;
+        var ds=document.documentElement.style;
+        Object.entries(T.palette).forEach(function(e){ds.setProperty('--t-'+e[0],e[1])});
+        ds.setProperty('--t-primary',T.primary);ds.setProperty('--t-secondary',T.secondary);ds.setProperty('--t-rgb',T.rgb);
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']},colors:{brand:T.palette,indigo:T.palette}}}}</script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+<nav id="main-nav"></nav>
+
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 bounce-in">
+            <i data-lucide="pen-line" class="w-8 h-8 text-indigo-600"></i>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-2">Create Your Own Quiz</h1>
+        <p class="text-gray-500">Fill in the details and add your questions. Share the fun!</p>
+    </div>
+
+    <!-- Error container -->
+    <div id="error-box" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 mb-8 flex items-start gap-3">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0"></i>
+        <div><h3 class="text-red-700 font-bold text-sm mb-1">Please fix the following:</h3>
+            <ul id="error-list" class="list-disc list-inside text-sm text-red-600 space-y-0.5"></ul>
+        </div>
+    </div>
+
+    <form id="quiz-form" onsubmit="return handleSubmit(event)">
+        <!-- Quiz Details -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-8 fade-in">
+            <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <i data-lucide="settings" class="w-5 h-5 text-indigo-500"></i> Quiz Details
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Quiz Title *</label>
+                    <input type="text" name="title" required placeholder="e.g. Ultimate Movie Trivia"
+                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description *</label>
+                    <textarea name="description" required rows="3" placeholder="What's this quiz about? Make it fun!"
+                              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
+                    <select name="category" required
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition bg-white text-sm">
+                        <option value="">Select a category...</option>
+                        <option value="Science">Science</option>
+                        <option value="History">History</option>
+                        <option value="Geography">Geography</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Movies">Movies</option>
+                        <option value="Music">Music</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Food">Food</option>
+                        <option value="Animals">Animals</option>
+                        <option value="General Knowledge">General Knowledge</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Difficulty *</label>
+                    <select name="difficulty" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition bg-white text-sm">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Time Per Question (seconds) *</label>
+                    <input type="number" name="time_per_question" value="30" required min="10" max="120"
+                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm">
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="help-circle" class="w-5 h-5 text-indigo-500"></i> Questions
+                </h2>
+                <span class="text-sm text-gray-400" id="question-count">1 question</span>
+            </div>
+
+            <div id="questions-container">
+                <!-- Question 1 (initial) -->
+                <div class="question-block bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5 fade-in" data-index="0">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-sm font-bold text-indigo-700 flex items-center gap-1.5">
+                            <span class="w-7 h-7 bg-indigo-100 rounded-md flex items-center justify-center">
+                                <span class="question-number-num text-xs">1</span>
+                            </span>
+                            <span class="question-number">Question 1</span>
+                        </h3>
+                        <button type="button" onclick="removeQuestion(this)" class="delete-btn hidden text-gray-400 hover:text-red-500 transition p-2 rounded-lg hover:bg-red-50" title="Remove">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Question *</label>
+                        <input type="text" data-field="question_text" required placeholder="e.g. What is the capital of France?"
+                               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div><label class="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-1.5"><span class="w-5 h-5 bg-indigo-100 text-indigo-700 rounded text-center text-xs leading-5 font-bold">A</span> Option A *</label>
+                            <input type="text" data-field="option_a" required placeholder="Option A" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>
+                        <div><label class="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-1.5"><span class="w-5 h-5 bg-indigo-100 text-indigo-700 rounded text-center text-xs leading-5 font-bold">B</span> Option B *</label>
+                            <input type="text" data-field="option_b" required placeholder="Option B" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>
+                        <div><label class="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-1.5"><span class="w-5 h-5 bg-indigo-100 text-indigo-700 rounded text-center text-xs leading-5 font-bold">C</span> Option C *</label>
+                            <input type="text" data-field="option_c" required placeholder="Option C" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>
+                        <div><label class="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-1.5"><span class="w-5 h-5 bg-indigo-100 text-indigo-700 rounded text-center text-xs leading-5 font-bold">D</span> Option D *</label>
+                            <input type="text" data-field="option_d" required placeholder="Option D" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Correct Answer *</label>
+                            <select data-field="correct_answer" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition bg-white text-sm">
+                                <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+                            </select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Points *</label>
+                            <input type="number" data-field="points" value="10" required min="1" max="100" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Explanation <span class="text-gray-400 font-normal">(optional)</span></label>
+                            <input type="text" data-field="explanation" placeholder="Why is this correct?" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" onclick="addQuestion()"
+                    class="w-full py-4 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 font-semibold hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex items-center justify-center gap-2 text-sm">
+                <i data-lucide="plus" class="w-5 h-5"></i> Add Another Question
+            </button>
+        </div>
+
+        <!-- Submit -->
+        <div class="text-center">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 gradient-bg text-white px-10 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-lg pulse-glow">
+                <i data-lucide="rocket" class="w-5 h-5"></i> Create Quiz
+            </button>
+            <p class="text-gray-400 text-sm mt-3">Your quiz will be available for everyone to play!</p>
+        </div>
+    </form>
+</div>
+
+<footer id="main-footer"></footer>
+
+<script src="js/question-bank.js"></script>
+<script src="js/app.js"></script>
+<script>
+let questionIndex = 1;
+
+function addQuestion() {
+    const container = document.getElementById('questions-container');
+    const idx = questionIndex;
+    const html = `
+    <div class="question-block bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5 fade-in" data-index="${idx}">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-bold text-indigo-700 flex items-center gap-1.5">
+                <span class="w-7 h-7 bg-indigo-100 rounded-md flex items-center justify-center">
+                    <span class="question-number-num text-xs">${idx+1}</span>
+                </span>
+                <span class="question-number">Question ${idx+1}</span>
+            </h3>
+            <button type="button" onclick="removeQuestion(this)" class="delete-btn text-gray-400 hover:text-red-500 transition p-2 rounded-lg hover:bg-red-50" title="Remove">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Question *</label>
+            <input type="text" data-field="question_text" required placeholder="e.g. What is the capital of France?" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm">
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            ${['A','B','C','D'].map(l => '<div><label class="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-1.5"><span class="w-5 h-5 bg-indigo-100 text-indigo-700 rounded text-center text-xs leading-5 font-bold">'+l+'</span> Option '+l+' *</label><input type="text" data-field="option_'+l.toLowerCase()+'" required placeholder="Option '+l+'" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>').join('')}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Correct Answer *</label>
+                <select data-field="correct_answer" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition bg-white text-sm">
+                    <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+                </select></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Points *</label>
+                <input type="number" data-field="points" value="10" required min="1" max="100" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Explanation <span class="text-gray-400 font-normal">(optional)</span></label>
+                <input type="text" data-field="explanation" placeholder="Why is this correct?" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition text-sm"></div>
+        </div>
+    </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+    questionIndex++;
+    updateQuestionNumbers();
+    container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function removeQuestion(btn) {
+    const blocks = document.querySelectorAll('.question-block');
+    if (blocks.length <= 1) {
+        showAlert('file-text', 'amber', "Can't Remove", 'You need at least one question in your quiz!', 'OK', 'modal-btn-warning');
+        return;
+    }
+    const block = btn.closest('.question-block');
+    const qNum = block.querySelector('.question-number').textContent;
+    showConfirm('trash-2', 'red', 'Delete Question?',
+        'Are you sure you want to remove <strong>' + qNum + '</strong>?<br>This action cannot be undone.',
+        'Delete', 'modal-btn-danger',
+        function() {
+            block.style.transition = 'all 0.3s ease';
+            block.style.opacity = '0';
+            block.style.transform = 'translateX(-20px)';
+            setTimeout(() => { block.remove(); updateQuestionNumbers(); }, 300);
+        }
+    );
+}
+
+function updateQuestionNumbers() {
+    const blocks = document.querySelectorAll('.question-block');
+    blocks.forEach((block, i) => {
+        block.querySelector('.question-number').textContent = 'Question ' + (i + 1);
+        const numEl = block.querySelector('.question-number-num');
+        if (numEl) numEl.textContent = i + 1;
+        const del = block.querySelector('.delete-btn');
+        if (blocks.length > 1) del.classList.remove('hidden');
+        else del.classList.add('hidden');
+    });
+    document.getElementById('question-count').textContent = blocks.length === 1 ? '1 question' : blocks.length + ' questions';
+}
+
+let createConfirmed = false;
+function handleSubmit(e) {
+    e.preventDefault();
+    const form = document.getElementById('quiz-form');
+    const title = form.querySelector('[name="title"]').value.trim();
+    const description = form.querySelector('[name="description"]').value.trim();
+    const category = form.querySelector('[name="category"]').value;
+    const difficulty = form.querySelector('[name="difficulty"]').value;
+    const time = parseInt(form.querySelector('[name="time_per_question"]').value);
+
+    // Validate
+    const errors = [];
+    if (!title) errors.push('Quiz title is required.');
+    if (!description) errors.push('Description is required.');
+    if (!category) errors.push('Please select a category.');
+
+    const blocks = document.querySelectorAll('.question-block');
+    blocks.forEach((block, i) => {
+        const qt = block.querySelector('[data-field="question_text"]').value.trim();
+        if (!qt) errors.push('Question ' + (i+1) + ' text is required.');
+        ['a','b','c','d'].forEach(l => {
+            if (!block.querySelector('[data-field="option_' + l + '"]').value.trim())
+                errors.push('Question ' + (i+1) + ' Option ' + l.toUpperCase() + ' is required.');
+        });
+    });
+
+    if (errors.length > 0) {
+        const box = document.getElementById('error-box');
+        const list = document.getElementById('error-list');
+        list.innerHTML = errors.map(e => '<li>' + e + '</li>').join('');
+        box.classList.remove('hidden');
+        box.scrollIntoView({ behavior: 'smooth' });
+        return false;
+    }
+    document.getElementById('error-box').classList.add('hidden');
+
+    if (!createConfirmed) {
+        showConfirm('rocket', 'green', 'Create Quiz?',
+            'Your quiz "<strong>' + escapeHtml(title) + '</strong>" with <strong>' + blocks.length + '</strong> question(s) will be published and available for everyone to play!',
+            'Create Quiz', 'modal-btn-success',
+            function() { createConfirmed = true; saveQuiz(); }
+        );
+        return false;
+    }
+    saveQuiz();
+    return false;
+}
+
+function saveQuiz() {
+    const form = document.getElementById('quiz-form');
+    const questions = [];
+    document.querySelectorAll('.question-block').forEach(block => {
+        questions.push({
+            question_text: block.querySelector('[data-field="question_text"]').value.trim(),
+            option_a: block.querySelector('[data-field="option_a"]').value.trim(),
+            option_b: block.querySelector('[data-field="option_b"]').value.trim(),
+            option_c: block.querySelector('[data-field="option_c"]').value.trim(),
+            option_d: block.querySelector('[data-field="option_d"]').value.trim(),
+            correct_answer: block.querySelector('[data-field="correct_answer"]').value,
+            points: parseInt(block.querySelector('[data-field="points"]').value) || 10,
+            explanation: block.querySelector('[data-field="explanation"]').value.trim() || null,
+        });
+    });
+
+    const quiz = DB.saveQuiz({
+        title: form.querySelector('[name="title"]').value.trim(),
+        description: form.querySelector('[name="description"]').value.trim(),
+        category: form.querySelector('[name="category"]').value,
+        difficulty: form.querySelector('[name="difficulty"]').value,
+        time_per_question: parseInt(form.querySelector('[name="time_per_question"]').value) || 30,
+        questions: questions,
+    });
+
+    showToast('Quiz created successfully!', 'success');
+    setTimeout(() => { window.location.href = 'quiz.html?id=' + quiz.id; }, 600);
+}
+</script>
+</body>
+</html>
