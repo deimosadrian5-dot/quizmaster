@@ -1,12 +1,11 @@
 FROM composer:2 AS composer
 
-FROM php:8.2-cli
+FROM php:8.2-cli-alpine
 
-# Install system dependencies and PHP extensions
-RUN apt-get update \
-    && apt-get install -y git curl zip unzip sqlite3 libsqlite3-dev libxml2-dev liboniguruma-dev \
-    && docker-php-ext-install pdo_sqlite mbstring xml \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies and PHP extensions (Alpine uses apk)
+RUN apk add --no-cache \
+    git curl zip unzip sqlite sqlite-dev libxml2-dev oniguruma-dev \
+    && docker-php-ext-install pdo_sqlite mbstring xml
 
 # Get composer from composer image
 COPY --from=composer /usr/bin/composer /usr/bin/composer
