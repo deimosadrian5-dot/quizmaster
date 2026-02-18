@@ -124,6 +124,38 @@
                 </div>
             </div>
 
+            <!-- Time Per Question -->
+            <div class="mb-8">
+                <label class="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
+                    <i data-lucide="timer" class="w-4 h-4 text-indigo-500"></i>
+                    Time Per Question: <span id="timerDisplay" class="text-indigo-600">20s</span>
+                    <span id="timerAutoLabel" class="text-xs text-gray-400 ml-1">(auto from difficulty)</span>
+                </label>
+                <div class="flex flex-wrap gap-2 mb-3" id="gen-timer-presets">
+                    <button type="button" onclick="setGenTimer(10)" class="gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-gray-200 bg-white text-gray-500 hover:border-indigo-300 hover:bg-indigo-50" data-value="10">10s</button>
+                    <button type="button" onclick="setGenTimer(15)" class="gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-gray-200 bg-white text-gray-500 hover:border-indigo-300 hover:bg-indigo-50" data-value="15">15s</button>
+                    <button type="button" onclick="setGenTimer(20)" class="gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-indigo-500 bg-indigo-50 text-indigo-700" data-value="20">20s</button>
+                    <button type="button" onclick="setGenTimer(30)" class="gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-gray-200 bg-white text-gray-500 hover:border-indigo-300 hover:bg-indigo-50" data-value="30">30s</button>
+                    <button type="button" onclick="setGenTimer(45)" class="gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-gray-200 bg-white text-gray-500 hover:border-indigo-300 hover:bg-indigo-50" data-value="45">45s</button>
+                    <button type="button" onclick="setGenTimer(60)" class="gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-gray-200 bg-white text-gray-500 hover:border-indigo-300 hover:bg-indigo-50" data-value="60">60s</button>
+                    <button type="button" onclick="setGenTimer(90)" class="gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-gray-200 bg-white text-gray-500 hover:border-indigo-300 hover:bg-indigo-50" data-value="90">90s</button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="range" id="gen-timer-slider" min="5" max="120" value="20" step="5"
+                           class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                    <div class="flex items-center gap-1 bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-1.5">
+                        <input type="number" id="gen-timer-input" min="5" max="120" value="20"
+                               class="w-12 text-center text-sm font-bold text-indigo-700 bg-transparent border-none focus:outline-none">
+                        <span class="text-xs text-indigo-400 font-medium">sec</span>
+                    </div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-400 mt-1 px-0.5">
+                    <span>5s</span>
+                    <span id="gen-timer-auto" class="cursor-pointer text-indigo-400 hover:text-indigo-600 font-medium" onclick="resetGenTimerToAuto()">Reset to auto</span>
+                    <span>120s</span>
+                </div>
+            </div>
+
             <!-- Preview -->
             <div id="previewBox" class="bg-gradient-to-r from-indigo-50 to-indigo-100 border border-indigo-200 rounded-xl p-5 mb-8 hidden">
                 <h3 class="font-bold text-indigo-800 text-sm mb-3 flex items-center gap-1.5">
@@ -166,6 +198,8 @@ const offlineIcons = {'Science':'flask-conical','History':'landmark','Geography'
 const diffColors = {easy:'#10b981',medium:'#f59e0b',hard:'#ef4444'};
 const diffLabels = {easy:'Easy', medium:'Medium', hard:'Hard'};
 const timePer = {easy:30, medium:20, hard:15};
+let customTimerSet = false;
+let customTimerValue = 20;
 
 function pageInit() {
     // Build online categories
@@ -234,7 +268,25 @@ function pageInit() {
         }
     });
 
-    document.querySelectorAll('input[name="difficulty"]').forEach(input => input.addEventListener('change', updatePreview));
+    document.querySelectorAll('input[name="difficulty"]').forEach(input => input.addEventListener('change', function() {
+        updatePreview();
+        if (!customTimerSet) {
+            const diff = this.value;
+            const t = timePer[diff] || 20;
+            setGenTimerDisplay(t);
+        }
+    }));
+
+    // Timer slider/input wiring
+    document.getElementById('gen-timer-slider').addEventListener('input', function() {
+        setGenTimer(parseInt(this.value));
+    });
+    document.getElementById('gen-timer-input').addEventListener('change', function() {
+        let v = parseInt(this.value);
+        if (isNaN(v) || v < 5) v = 5;
+        if (v > 120) v = 120;
+        setGenTimer(v);
+    });
 
     lucide.createIcons();
     updatePreview();
@@ -267,6 +319,39 @@ function updatePreview() {
 }
 
 let generateConfirmed = false;
+
+function setGenTimer(val) {
+    customTimerSet = true;
+    customTimerValue = val;
+    setGenTimerDisplay(val);
+    document.getElementById('timerAutoLabel').textContent = '(custom)';
+}
+
+function setGenTimerDisplay(val) {
+    customTimerValue = val;
+    document.getElementById('gen-timer-slider').value = val;
+    document.getElementById('gen-timer-input').value = val;
+    document.getElementById('timerDisplay').textContent = val + 's';
+
+    document.querySelectorAll('.gen-timer-btn').forEach(btn => {
+        const bv = parseInt(btn.dataset.value);
+        if (bv === val) {
+            btn.className = 'gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-indigo-500 bg-indigo-50 text-indigo-700';
+        } else {
+            btn.className = 'gen-timer-btn px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all duration-200 border-gray-200 bg-white text-gray-500 hover:border-indigo-300 hover:bg-indigo-50';
+        }
+    });
+}
+
+function resetGenTimerToAuto() {
+    customTimerSet = false;
+    const selDiff = document.querySelector('input[name="difficulty"]:checked');
+    const diff = selDiff ? selDiff.value : 'medium';
+    const t = timePer[diff] || 20;
+    setGenTimerDisplay(t);
+    document.getElementById('timerAutoLabel').textContent = '(auto from difficulty)';
+}
+
 function handleGenerate(e) {
     e.preventDefault();
     const selCat = document.querySelector('input[name="category"]:checked');
@@ -321,7 +406,7 @@ async function doGenerate() {
             return;
         }
 
-        const timePerQ = timePer[difficulty] || 20;
+        const timePerQ = customTimerValue;
         const quiz = DB.saveQuiz({
             title: category + ' Challenge',
             description: 'Auto-generated ' + difficulty + ' quiz with ' + questions.length + ' questions from ' + (isOnline ? 'Open Trivia Database' : 'our built-in question bank') + '.',
