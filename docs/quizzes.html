@@ -61,7 +61,8 @@ function pageInit() {
             <i data-lucide="layers" class="w-3.5 h-3.5"></i> All
         </button>`;
         categories.forEach(cat => {
-            filterHtml += `<button onclick="filterCategory('${escapeHtml(cat)}')" class="filter-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 font-medium text-sm transition hover:bg-gray-200" data-category="${escapeHtml(cat)}">${escapeHtml(cat)}</button>`;
+            const icon = getCategoryIcon(cat);
+            filterHtml += `<button onclick="filterCategory('${escapeHtml(cat)}')" class="filter-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-100 text-gray-600 font-medium text-sm transition hover:bg-gray-200" data-category="${escapeHtml(cat)}"><i data-lucide="${icon}" class="w-3.5 h-3.5"></i> ${escapeHtml(cat)}</button>`;
         });
         filterContainer.innerHTML = filterHtml;
     }
