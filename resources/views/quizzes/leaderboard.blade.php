@@ -9,7 +9,7 @@
         <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <i data-lucide="trophy" class="w-8 h-8 text-amber-600"></i>
         </div>
-        <h1 class="text-4xl font-extrabold text-gray-800 mb-2">Leaderboard</h1>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-2">Leaderboard</h1>
         <p class="text-gray-500">The best quiz masters of all time!</p>
     </div>
 
@@ -41,37 +41,37 @@
     @else
         <!-- Top 3 Podium -->
         @if($attempts->count() >= 3)
-        <div class="grid grid-cols-3 gap-4 mb-10 items-end">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 items-end">
             <!-- 2nd Place -->
-            <div class="text-center fade-in">
+            <div class="text-center fade-in order-2 sm:order-1">
                 <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-white mx-auto mb-3 shadow-md">
                     <span class="text-lg font-bold">2</span>
                 </div>
-                <div class="bg-gray-100 rounded-t-xl p-4 border border-gray-200" style="height: 120px;">
+                <div class="bg-gray-100 rounded-xl sm:rounded-t-xl sm:rounded-b-none p-4 border border-gray-200 sm:h-[120px]">
                     <div class="font-bold text-gray-700 text-sm">{{ $attempts[1]->player_name }}</div>
-                    <div class="text-2xl font-extrabold text-gray-600">{{ $attempts[1]->score }}</div>
+                    <div class="text-xl sm:text-2xl font-extrabold text-gray-600">{{ $attempts[1]->score }}</div>
                     <div class="text-xs text-gray-400 mt-1 truncate">{{ $attempts[1]->quiz->title ?? '' }}</div>
                 </div>
             </div>
             <!-- 1st Place -->
-            <div class="text-center fade-in">
+            <div class="text-center fade-in order-1 sm:order-2">
                 <div class="w-14 h-14 bg-amber-400 rounded-full flex items-center justify-center text-white mx-auto mb-3 shadow-lg">
                     <i data-lucide="crown" class="w-7 h-7"></i>
                 </div>
-                <div class="gradient-bg rounded-t-xl p-4 text-white" style="height: 160px;">
+                <div class="gradient-bg rounded-xl sm:rounded-t-xl sm:rounded-b-none p-4 text-white sm:h-[160px]">
                     <div class="font-bold text-sm">{{ $attempts[0]->player_name }}</div>
-                    <div class="text-3xl font-extrabold">{{ $attempts[0]->score }}</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold">{{ $attempts[0]->score }}</div>
                     <div class="text-xs text-indigo-200 mt-1 truncate">{{ $attempts[0]->quiz->title ?? '' }}</div>
                 </div>
             </div>
             <!-- 3rd Place -->
-            <div class="text-center fade-in">
+            <div class="text-center fade-in order-3">
                 <div class="w-12 h-12 bg-orange-400 rounded-full flex items-center justify-center text-white mx-auto mb-3 shadow-md">
                     <span class="text-lg font-bold">3</span>
                 </div>
-                <div class="bg-orange-50 rounded-t-xl p-4 border border-orange-200" style="height: 100px;">
+                <div class="bg-orange-50 rounded-xl sm:rounded-t-xl sm:rounded-b-none p-4 border border-orange-200 sm:h-[100px]">
                     <div class="font-bold text-orange-700 text-sm">{{ $attempts[2]->player_name }}</div>
-                    <div class="text-2xl font-extrabold text-orange-600">{{ $attempts[2]->score }}</div>
+                    <div class="text-xl sm:text-2xl font-extrabold text-orange-600">{{ $attempts[2]->score }}</div>
                     <div class="text-xs text-orange-400 mt-1 truncate">{{ $attempts[2]->quiz->title ?? '' }}</div>
                 </div>
             </div>
@@ -79,22 +79,22 @@
         @endif
 
         <!-- Ranking Table -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table class="w-full">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+            <table class="w-full min-w-[600px]">
                 <thead class="bg-gray-50 border-b border-gray-100">
                     <tr>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Rank</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Player</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Quiz</th>
-                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Score</th>
-                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Accuracy</th>
-                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Time</th>
+                        <th class="px-3 md:px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Rank</th>
+                        <th class="px-3 md:px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Player</th>
+                        <th class="px-3 md:px-6 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Quiz</th>
+                        <th class="px-3 md:px-6 py-3.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Score</th>
+                        <th class="px-3 md:px-6 py-3.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Accuracy</th>
+                        <th class="px-3 md:px-6 py-3.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Time</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @foreach($attempts as $index => $attempt)
                     <tr class="hover:bg-gray-50 transition {{ $index < 3 ? 'bg-amber-50/30' : '' }}">
-                        <td class="px-6 py-4">
+                        <td class="px-3 md:px-6 py-4">
                             @if($index === 0)
                                 <span class="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center text-white font-bold text-xs">1</span>
                             @elseif($index === 1)
@@ -105,23 +105,25 @@
                                 <span class="text-gray-400 font-bold text-sm pl-2">{{ $index + 1 }}</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-3 md:px-6 py-4">
                             <div class="font-semibold text-gray-800 text-sm">{{ $attempt->player_name }}</div>
                             <div class="text-xs text-gray-400">{{ $attempt->created_at->diffForHumans() }}</div>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">{{ $attempt->quiz->title ?? 'Unknown' }}</td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-3 md:px-6 py-4 text-sm text-gray-600">{{ $attempt->quiz->title ?? 'Unknown' }}</td>
+                        <td class="px-3 md:px-6 py-4 text-center">
                             <span class="font-bold text-indigo-700">{{ $attempt->score }}</span>
                             <span class="text-gray-400 text-xs">/{{ $attempt->total_points }}</span>
                         </td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-3 md:px-6 py-4 text-center">
                             <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold
                                 {{ $attempt->percentage >= 70 ? 'bg-emerald-100 text-emerald-700' : ($attempt->percentage >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700') }}">
                                 {{ $attempt->percentage }}%
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-center text-sm text-gray-500 flex items-center justify-center gap-1">
-                            <i data-lucide="clock" class="w-3 h-3"></i> {{ $attempt->time_taken }}s
+                        <td class="px-3 md:px-6 py-4 text-center text-sm text-gray-500">
+                            <div class="flex items-center justify-center gap-1">
+                                <i data-lucide="clock" class="w-3 h-3"></i> {{ $attempt->time_taken }}s
+                            </div>
                         </td>
                     </tr>
                     @endforeach

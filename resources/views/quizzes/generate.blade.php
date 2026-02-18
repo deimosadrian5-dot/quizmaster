@@ -9,7 +9,7 @@
         <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4 bounce-in">
             <i data-lucide="zap" class="w-8 h-8 text-amber-600"></i>
         </div>
-        <h1 class="text-4xl font-extrabold text-gray-800 mb-3">Instant Quiz Generator</h1>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-3">Instant Quiz Generator</h1>
         <p class="text-gray-500 text-lg">Pick a source, category, and difficulty — we'll generate a unique quiz in seconds!</p>
     </div>
 
@@ -225,7 +225,7 @@
                 <h3 class="font-bold text-indigo-800 text-sm mb-3 flex items-center gap-1.5">
                     <i data-lucide="eye" class="w-4 h-4"></i> Your Quiz Preview
                 </h3>
-                <div class="grid grid-cols-4 gap-3 text-center">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                     <div>
                         <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center mx-auto mb-1 shadow-sm" id="previewSourceWrap">
                             <i data-lucide="wifi" id="previewSourceIcon" class="w-4 h-4 text-blue-500"></i>

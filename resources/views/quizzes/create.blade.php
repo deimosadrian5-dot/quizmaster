@@ -10,7 +10,7 @@
         <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 bounce-in">
             <i data-lucide="pen-line" class="w-8 h-8 text-indigo-600"></i>
         </div>
-        <h1 class="text-4xl font-extrabold text-gray-800 mb-2">Create Your Own Quiz</h1>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-2">Create Your Own Quiz</h1>
         <p class="text-gray-500">Fill in the details and add your questions. Share the fun!</p>
     </div>
 

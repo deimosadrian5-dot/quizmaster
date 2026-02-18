@@ -6,7 +6,7 @@
 <div class="max-w-4xl mx-auto px-4 py-12">
     <!-- Quiz Hero -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
-        <div class="gradient-bg p-10 text-white text-center relative">
+        <div class="gradient-bg p-6 md:p-10 text-white text-center relative">
             <div class="w-16 h-16 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="{{ $quiz->category_icon }}" class="w-8 h-8"></i>
             </div>
