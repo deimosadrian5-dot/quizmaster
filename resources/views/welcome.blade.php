@@ -1,0 +1,139 @@
+@extends('layouts.app')
+
+@section('title', 'Welcome')
+
+@section('content')
+<!-- Hero -->
+<div class="gradient-bg text-white relative overflow-hidden">
+    <!-- Decorative background elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <!-- Floating shapes -->
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/4 right-1/4 w-72 h-72 bg-white/[0.03] rounded-full blur-2xl"></div>
+
+        <!-- Grid pattern -->
+        <div class="absolute inset-0" style="background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+        <!-- Animated floating icons -->
+        <div class="absolute top-12 left-[10%] text-white/10 animate-float-slow"><i data-lucide="brain" class="w-12 h-12"></i></div>
+        <div class="absolute top-28 right-[12%] text-white/10 animate-float-delayed"><i data-lucide="trophy" class="w-10 h-10"></i></div>
+        <div class="absolute bottom-16 left-[18%] text-white/10 animate-float-delayed"><i data-lucide="target" class="w-9 h-9"></i></div>
+        <div class="absolute bottom-24 right-[20%] text-white/10 animate-float-slow"><i data-lucide="zap" class="w-11 h-11"></i></div>
+        <div class="absolute top-1/2 left-[5%] text-white/[0.06] animate-float-delayed"><i data-lucide="star" class="w-8 h-8"></i></div>
+        <div class="absolute top-1/3 right-[6%] text-white/[0.06] animate-float-slow"><i data-lucide="sparkles" class="w-8 h-8"></i></div>
+
+        <!-- Diagonal lines -->
+        <svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+            <line x1="0" y1="100%" x2="35%" y2="0" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="65%" y1="100%" x2="100%" y2="0" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="20%" y1="100%" x2="55%" y2="0" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+            <line x1="45%" y1="100%" x2="80%" y2="0" stroke="rgba(255,255,255,0.025)" stroke-width="1"/>
+        </svg>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 py-24 md:py-32 text-center">
+        <div class="w-20 h-20 bg-white/15 rounded-2xl flex items-center justify-center mx-auto mb-6 bounce-in backdrop-blur-sm border border-white/10 shadow-lg shadow-black/10">
+            <i data-lucide="brain" class="w-10 h-10"></i>
+        </div>
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-4 tracking-tight drop-shadow-lg">QuizMaster</h1>
+        <p class="text-xl md:text-2xl text-indigo-200 mb-10 max-w-2xl mx-auto drop-shadow">
+            Challenge yourself with fun quizzes, compete with friends, and climb the leaderboard!
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{{ route('quizzes.index') }}"
+               class="inline-flex items-center justify-center gap-2 bg-white text-indigo-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-50 transition shadow-xl hover:shadow-2xl hover:-translate-y-0.5">
+                <i data-lucide="play" class="w-5 h-5"></i> Start Playing
+            </a>
+            <a href="{{ route('quizzes.leaderboard') }}"
+               class="inline-flex items-center justify-center gap-2 bg-white/15 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/25 transition border border-white/20 shadow-lg hover:-translate-y-0.5">
+                <i data-lucide="trophy" class="w-5 h-5"></i> View Leaderboard
+            </a>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="mt-16 flex flex-wrap justify-center gap-8 text-white/70 text-sm">
+            <div class="flex items-center gap-2"><i data-lucide="help-circle" class="w-4 h-4"></i> <span>200+ Questions</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> <span>10+ Categories</span></div>
+            <div class="flex items-center gap-2"><i data-lucide="gauge" class="w-4 h-4"></i> <span>3 Difficulty Levels</span></div>
+        </div>
+    </div>
+</div>
+
+@push('styles')
+<style>
+    @keyframes floatSlow {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-18px) rotate(6deg); }
+    }
+    @keyframes floatDelayed {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-14px) rotate(-5deg); }
+    }
+    .animate-float-slow    { animation: floatSlow 6s ease-in-out infinite; }
+    .animate-float-delayed { animation: floatDelayed 5s ease-in-out 1.5s infinite; }
+</style>
+@endpush
+
+<!-- Features -->
+<div class="max-w-7xl mx-auto px-4 py-20">
+    <h2 class="text-3xl font-extrabold text-gray-800 text-center mb-14">Why You'll Love It</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 card-hover">
+            <div class="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-5">
+                <i data-lucide="target" class="w-7 h-7 text-indigo-600"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Multiple Categories</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">Science, Movies, Geography, Tech, Food, Sports — something for everyone!</p>
+        </div>
+        <div class="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 card-hover">
+            <div class="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-5">
+                <i data-lucide="clock" class="w-7 h-7 text-amber-600"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Timed Questions</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">Race against the clock! Each question has a countdown timer to keep things exciting.</p>
+        </div>
+        <div class="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 card-hover">
+            <div class="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-5">
+                <i data-lucide="trophy" class="w-7 h-7 text-emerald-600"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Leaderboard</h3>
+            <p class="text-gray-500 text-sm leading-relaxed">Compete for the top spot! See how you stack up against other quiz masters.</p>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="bg-white border-y border-gray-100 py-20">
+    <div class="max-w-5xl mx-auto px-4">
+        <h2 class="text-3xl font-extrabold text-gray-800 text-center mb-14">How It Works</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            @php $steps = [
+                ['icon' => 'search', 'title' => 'Pick a Quiz', 'desc' => 'Choose from our collection'],
+                ['icon' => 'user',   'title' => 'Enter Your Name', 'desc' => 'So we can track your score'],
+                ['icon' => 'check-circle', 'title' => 'Answer Questions', 'desc' => 'Beat the timer!'],
+                ['icon' => 'bar-chart-2',  'title' => 'See Results', 'desc' => 'Review answers & leaderboard'],
+            ]; @endphp
+            @foreach($steps as $i => $step)
+            <div class="text-center">
+                <div class="w-14 h-14 gradient-bg rounded-full flex items-center justify-center text-white mx-auto mb-4 shadow-md">
+                    <i data-lucide="{{ $step['icon'] }}" class="w-6 h-6"></i>
+                </div>
+                <h4 class="font-bold text-gray-700 mb-1">{{ $step['title'] }}</h4>
+                <p class="text-sm text-gray-500">{{ $step['desc'] }}</p>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+<!-- CTA -->
+<div class="max-w-7xl mx-auto px-4 py-20 text-center">
+    <h2 class="text-3xl font-extrabold text-gray-800 mb-4">Ready to Test Your Knowledge?</h2>
+    <p class="text-gray-500 mb-8 text-lg">Multiple quizzes with dozens of questions are waiting for you!</p>
+    <a href="{{ route('quizzes.index') }}"
+       class="inline-flex items-center gap-2 gradient-bg text-white px-10 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition pulse-glow shadow-lg">
+        <i data-lucide="rocket" class="w-5 h-5"></i> Let's Go
+    </a>
+</div>
+@endsection
