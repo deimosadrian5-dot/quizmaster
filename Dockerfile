@@ -15,7 +15,7 @@ WORKDIR /app
 COPY . .
 
 # Create .env for build-time artisan commands
-RUN echo "APP_NAME=QuizMaster\n\
+RUN printf "APP_NAME=QuizMaster\n\
 APP_ENV=production\n\
 APP_KEY=base64:JI1lz1T02QxYhbcGC7yNDy6WtvTltIUe5VSMcUXiB6w=\n\
 APP_DEBUG=false\n\
@@ -24,13 +24,14 @@ DB_CONNECTION=sqlite\n\
 LOG_CHANNEL=stack\n\
 CACHE_DRIVER=file\n\
 SESSION_DRIVER=file\n\
-QUEUE_CONNECTION=sync" > .env
+QUEUE_CONNECTION=sync\n" > .env
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Setup database and cache
-RUN mkdir -p database \
+# Prepare storage & database (bake seeded data into image)
+RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data \
+    && chmod -R 775 storage bootstrap/cache \
     && touch database/database.sqlite \
     && php artisan migrate --force \
     && php artisan db:seed --force \
@@ -38,9 +39,8 @@ RUN mkdir -p database \
     && php artisan route:cache \
     && php artisan view:cache
 
-# Render sets PORT dynamically (default 10000)
+# Render sets PORT env var dynamically
 ENV PORT=10000
-EXPOSE ${PORT}
+EXPOSE 10000
 
-# Use shell form so $PORT is expanded at runtime
 CMD php artisan serve --host=0.0.0.0 --port=$PORT
