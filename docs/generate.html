@@ -304,7 +304,8 @@ async function doGenerate() {
     try {
         let questions;
         if (isOnline) {
-            questions = await smartFetch(category, numQ, difficulty);
+            const result = await smartFetch(category, numQ, difficulty);
+            questions = result.questions;
         } else {
             questions = getOfflineQuestions(category, numQ);
         }
